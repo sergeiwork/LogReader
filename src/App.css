@@ -8,3 +8,15 @@
   flex-direction: column;
   align-items: center;
 }
+
+.logRow {
+  color: black;
+}
+
+.Information {
+  background-color: wheat;
+}
+
+.Error {
+  background-color: salmon;
+}

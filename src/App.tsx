@@ -1,6 +1,6 @@
-import React, { createRef, useState } from "react";
+import React, { createRef, useEffect, useState } from "react";
 import "./App.css";
-import { Button, Spinner, Table } from "reactstrap";
+import { Button, Input, Spinner, Table } from "reactstrap";
 
 interface ILogLineProperties {
   SourceContext: string;
@@ -36,48 +36,77 @@ const format = (str: string, obj: any): string => {
 
 function App() {
   const fileInput = createRef<HTMLInputElement>();
+  const [fileLines, setFileLines] = useState<string[]>([]);
   const [logLines, setLogLines] = useState<LogLine[]>([]);
+
   const [exceptions, setExceptions] = useState(new Map<string, number>());
   const [workers, setworkers] = useState(new Map<string, number>());
+
   const [loading, setLoading] = useState(false);
+
+  const [filterExceptions, setFilterExceptions] = useState<string[]>([]);
+  const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
+
+  const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
+
+  useEffect(() => {
+    var objects = fileLines
+      .filter((l) => l.trim().length > 0)
+      .map<LogLine>((l, i) => {
+        const obj = JSON.parse(l);
+        return {
+          Timestamp: new Date(obj.Timestamp),
+          Level: obj.Level,
+          Message: format(obj.MessageTemplate, obj.Properties),
+          Exception: obj.Exception,
+          Id: i,
+          Properties: obj.Properties,
+        };
+      });
+
+    const newExceptions = new Map<string, number>();
+    for (let log of objects) {
+      if (log.Exception) {
+        let exception = log.Exception.split(" ")[0];
+        if (newExceptions.has(exception))
+          newExceptions.set(exception, newExceptions.get(exception)! + 1);
+        else newExceptions.set(exception, 1);
+      }
+    }
+    setExceptions(newExceptions);
+    setFilterExceptions(Array.from(newExceptions.keys()));
+
+    const newWorkers = new Map<string, number>();
+    for (let log of objects) {
+      let worker = (log.Properties?.WorkerName ?? "General") + " " + log.Level;
+      if (newWorkers.has(worker))
+        newWorkers.set(worker, newWorkers.get(worker)! + 1);
+      else newWorkers.set(worker, 1);
+    }
+    setworkers(newWorkers);
+    setFilterWorkers(Array.from(newWorkers.keys()));
+
+    setLogLines(objects);
+  }, [fileLines]);
+
+  useEffect(() => {
+    setViewLogLines(
+      logLines.filter(
+        (l) =>
+          (!l.Exception ||
+            filterExceptions.includes(l.Exception.split(" ")[0])) &&
+          filterWorkers.includes(
+            (l.Properties?.WorkerName ?? "General") + " " + l.Level
+          )
+      )
+    );
+  }, [logLines, filterExceptions, filterWorkers]);
+
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const reader = new FileReader();
     reader.addEventListener("load", (event) => {
       const lines = (event.target?.result as string).split("\n");
-      var objects = lines
-        .filter((l) => l.trim().length > 0)
-        .map<LogLine>((l, i) => {
-          const obj = JSON.parse(l);
-          return {
-            Timestamp: new Date(obj.Timestamp),
-            Level: obj.Level,
-            Message: format(obj.MessageTemplate, obj.Properties),
-            Exception: obj.Exception,
-            Id: i,
-            Properties: obj.Properties,
-          };
-        });
-      const newExceptions = new Map<string, number>();
-      for (let log of objects) {
-        if (log.Exception) {
-          let exception = log.Exception.split(" ")[0];
-          if (newExceptions.has(exception))
-            newExceptions.set(exception, newExceptions.get(exception)! + 1);
-          else newExceptions.set(exception, 1);
-        }
-      }
-      setExceptions(newExceptions);
-      const newWorkers = new Map<string, number>();
-      for (let log of objects) {
-        if (log.Properties?.WorkerName) {
-          let worker = log.Properties.WorkerName + " " + log.Level;
-          if (newWorkers.has(worker))
-            newWorkers.set(worker, newWorkers.get(worker)! + 1);
-          else newWorkers.set(worker, 1);
-        }
-      }
-      setworkers(newWorkers);
-      setLogLines(objects);
+      setFileLines(lines);
       setLoading(false);
     });
     setLoading(true);
@@ -90,16 +119,18 @@ function App() {
       <Button onClick={loadFile} disabled={loading}>
         Load
       </Button>
+      {/* <LineChart style={{ width: "70%", height: "30%" }}></LineChart> */}
       {loading ? (
         <Spinner color="info" />
       ) : (
-        <div>
+        <div style={{ width: "100%" }}>
           Exceptions:
           <Table striped bordered>
             <thead>
               <tr>
                 <td width="10%">Count</td>
                 <td width="auto">Exception</td>
+                <td width="5%"></td>
               </tr>
             </thead>
             <tbody>
@@ -109,6 +140,21 @@ function App() {
                   <tr key={k}>
                     <td>{exceptions.get(k)}</td>
                     <td>{k}</td>
+                    <td>
+                      <Input
+                        type="checkbox"
+                        className="tableCheckbox"
+                        checked={filterExceptions.includes(k)}
+                        onChange={(e) => {
+                          if (e.target.checked)
+                            setFilterExceptions([...filterExceptions, k]);
+                          else
+                            setFilterExceptions([
+                              ...filterExceptions.filter((s) => s !== k),
+                            ]);
+                        }}
+                      />
+                    </td>
                   </tr>
                 ))}
             </tbody>
@@ -120,6 +166,7 @@ function App() {
               <tr>
                 <td width="10%">Count</td>
                 <td width="auto">Worker</td>
+                <td width="5%"></td>
               </tr>
             </thead>
             <tbody>
@@ -129,12 +176,31 @@ function App() {
                   <tr key={k}>
                     <td>{workers.get(k)}</td>
                     <td>{k}</td>
+                    <td>
+                      <div>
+                        <Input
+                          type="checkbox"
+                          className="tableCheckbox"
+                          checked={filterWorkers.includes(k)}
+                          onChange={(e) => {
+                            if (e.target.checked)
+                              setFilterWorkers([...filterWorkers, k]);
+                            else
+                              setFilterWorkers([
+                                ...filterWorkers.filter((s) => s !== k),
+                              ]);
+                          }}
+                        />
+                      </div>
+                    </td>
                   </tr>
                 ))}
             </tbody>
           </Table>
           <br />
           Events:
+          <br />
+          Showing {viewLogLines.length} out of {logLines.length}
           <Table striped>
             <thead>
               <tr>
@@ -147,7 +213,7 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {logLines.map((l) => (
+              {viewLogLines.map((l) => (
                 <tr key={l.Id} className={"logRow " + l.Level}>
                   <td>{l.Id}</td>
                   <td>{l.Timestamp.toLocaleString()}</td>

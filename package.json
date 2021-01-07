@@ -13,12 +13,14 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-redux": "^7.1.7",
     "@types/reactstrap": "^8.7.2",
+    "@types/recharts": "^1.8.18",
     "bootstrap": "^4.5.3",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-redux": "^7.2.0",
     "react-scripts": "4.0.1",
     "reactstrap": "^8.8.1",
+    "recharts": "2.0.0-beta.8",
     "typescript": "~3.8.2"
   },
   "scripts": {

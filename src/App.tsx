@@ -206,7 +206,29 @@ function App() {
               <tr>
                 <td width="10%">Count</td>
                 <td width="auto">Exception</td>
-                <td width="5%"></td>
+                <td width="5%">
+                  <div style={{ display: "flex", flexDirection: "row" }}>
+                    <Button
+                      outline
+                      size="sm"
+                      color="secondary"
+                      style={{ marginRight: 5 }}
+                      onClick={() => setFilterExceptions([])}
+                    >
+                      ☐
+                    </Button>
+                    <Button
+                      outline
+                      size="sm"
+                      color="success"
+                      onClick={() =>
+                        setFilterExceptions(Array.from(exceptions.keys()))
+                      }
+                    >
+                      ☑
+                    </Button>
+                  </div>
+                </td>
               </tr>
             </thead>
             <tbody>
@@ -242,7 +264,29 @@ function App() {
               <tr>
                 <td width="10%">Count</td>
                 <td width="auto">Worker</td>
-                <td width="5%"></td>
+                <td width="5%">
+                  <div style={{ display: "flex", flexDirection: "row" }}>
+                    <Button
+                      outline
+                      size="sm"
+                      color="secondary"
+                      style={{ marginRight: 5 }}
+                      onClick={() => setFilterWorkers([])}
+                    >
+                      ☐
+                    </Button>
+                    <Button
+                      outline
+                      size="sm"
+                      color="success"
+                      onClick={() =>
+                        setFilterWorkers(Array.from(workers.keys()))
+                      }
+                    >
+                      ☑
+                    </Button>
+                  </div>
+                </td>
               </tr>
             </thead>
             <tbody>

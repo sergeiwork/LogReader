@@ -1,6 +1,22 @@
 import React, { createRef, useEffect, useState } from "react";
 import "./App.css";
 import { Button, Input, Spinner, Table } from "reactstrap";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { timeStamp } from "console";
+
+class GraphPoint {
+  public Time: string = "00";
+  public Timestamp: number = 0;
+  [key: string]: number | string;
+}
 
 interface ILogLineProperties {
   SourceContext: string;
@@ -34,6 +50,20 @@ const format = (str: string, obj: any): string => {
   return str;
 };
 
+function CreateGraphPoint(
+  timeStamp: number,
+  time: string,
+  lines: string[]
+): GraphPoint {
+  let result = new GraphPoint();
+  result.Timestamp = timeStamp;
+  result.Time = time;
+  lines.forEach((line) => {
+    result[line] = 0;
+  });
+  return result;
+}
+
 function App() {
   const fileInput = createRef<HTMLInputElement>();
   const [fileLines, setFileLines] = useState<string[]>([]);
@@ -48,6 +78,8 @@ function App() {
   const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
 
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
+
+  const [graphData, setGraphData] = useState<GraphPoint[]>([]);
 
   useEffect(() => {
     var objects = fileLines
@@ -104,6 +136,34 @@ function App() {
     setLoading(false);
   }, [logLines, filterExceptions, filterWorkers]);
 
+  useEffect(() => {
+    const newGraph = new Array<GraphPoint>();
+    let newPoint = new GraphPoint();
+    for (let log of viewLogLines) {
+      let worker = (log.Properties?.WorkerName ?? "General") + " " + log.Level;
+      let time =
+        log.Timestamp.getHours() +
+        ":" +
+        (Math.floor(log.Timestamp.getMinutes() / 10) * 10 + "").padStart(
+          2,
+          "0"
+        );
+      if (time !== newPoint.Time) {
+        if (newPoint.Time !== "") {
+          newGraph.push(newPoint);
+        }
+        newPoint = CreateGraphPoint(
+          log.Timestamp.getTime(),
+          time,
+          filterWorkers
+        );
+      }
+      let current = newPoint[worker] as number;
+      newPoint[worker] = (isNaN(current) ? 0 : current) + 1;
+    }
+    setGraphData(newGraph);
+  }, [viewLogLines]);
+
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const reader = new FileReader();
     reader.addEventListener("load", (event) => {
@@ -125,6 +185,21 @@ function App() {
         <Spinner color="info" />
       ) : (
         <div style={{ width: "100%" }}>
+          <LineChart data={graphData} height={300} width={1000}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="Time" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {Array.from(workers.keys()).map((w) => (
+              <Line
+                type="monotone"
+                dataKey={w}
+                stroke={"#" + Math.floor(Math.random() * 16777215).toString(16)}
+                key={w}
+              />
+            ))}
+          </LineChart>
           Exceptions:
           <Table striped bordered>
             <thead>

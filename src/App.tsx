@@ -65,6 +65,8 @@ function App() {
       });
 
     const newExceptions = new Map<string, number>();
+    const newWorkers = new Map<string, number>();
+
     for (let log of objects) {
       if (log.Exception) {
         let exception = log.Exception.split(" ")[0];
@@ -72,17 +74,15 @@ function App() {
           newExceptions.set(exception, newExceptions.get(exception)! + 1);
         else newExceptions.set(exception, 1);
       }
-    }
-    setExceptions(newExceptions);
-    setFilterExceptions(Array.from(newExceptions.keys()));
 
-    const newWorkers = new Map<string, number>();
-    for (let log of objects) {
       let worker = (log.Properties?.WorkerName ?? "General") + " " + log.Level;
       if (newWorkers.has(worker))
         newWorkers.set(worker, newWorkers.get(worker)! + 1);
       else newWorkers.set(worker, 1);
     }
+    setExceptions(newExceptions);
+    setFilterExceptions(Array.from(newExceptions.keys()));
+
     setworkers(newWorkers);
     setFilterWorkers(Array.from(newWorkers.keys()));
 
@@ -90,6 +90,7 @@ function App() {
   }, [fileLines]);
 
   useEffect(() => {
+    setLoading(true);
     setViewLogLines(
       logLines.filter(
         (l) =>
@@ -100,6 +101,7 @@ function App() {
           )
       )
     );
+    setLoading(false);
   }, [logLines, filterExceptions, filterWorkers]);
 
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -119,7 +121,6 @@ function App() {
       <Button onClick={loadFile} disabled={loading}>
         Load
       </Button>
-      {/* <LineChart style={{ width: "70%", height: "30%" }}></LineChart> */}
       {loading ? (
         <Spinner color="info" />
       ) : (

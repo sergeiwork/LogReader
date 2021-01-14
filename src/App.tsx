@@ -53,17 +53,23 @@ function App() {
   useEffect(() => {
     var objects = fileLines
       .filter((l) => l.trim().length > 0)
-      .map<LogLine>((l, i) => {
-        const obj = JSON.parse(l);
-        return {
-          Timestamp: new Date(obj.Timestamp),
-          Level: obj.Level,
-          Message: format(obj.MessageTemplate, obj.Properties),
-          Exception: obj.Exception,
-          Id: i,
-          Properties: obj.Properties,
-        };
-      });
+      .map<LogLine | null>((l, i) => {
+        try{
+          const obj = JSON.parse(l);
+          return {
+            Timestamp: new Date(obj.Timestamp),
+            Level: obj.Level,
+            Message: format(obj.MessageTemplate, obj.Properties),
+            Exception: obj.Exception,
+            Id: i,
+            Properties: obj.Properties,
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter((l) => l !== null)
+      .map<LogLine>(l => l!);
 
     const newExceptions = new Map<string, number>();
     const newWorkers = new Map<string, number>();

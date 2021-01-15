@@ -99,6 +99,7 @@ function App() {
 
   useEffect(() => {
     setLoading(true);
+    let count = 0;
     setViewLogLines(
       logLines.filter(
         (l) =>
@@ -106,7 +107,7 @@ function App() {
             filterExceptions.includes(l.Exception.split(" ")[0])) &&
           filterWorkers.includes(
             (l.Properties?.WorkerName ?? "General") + " " + l.Level
-          )
+          ) &&  count++ < 1000
       )
     );
     setLoading(false);

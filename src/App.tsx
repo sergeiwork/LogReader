@@ -99,7 +99,6 @@ function App() {
 
   useEffect(() => {
     setLoading(true);
-    let count = 0;
     setViewLogLines(
       logLines.filter(
         (l) =>
@@ -107,7 +106,7 @@ function App() {
             filterExceptions.includes(l.Exception.split(" ")[0])) &&
           filterWorkers.includes(
             (l.Properties?.WorkerName ?? "General") + " " + l.Level
-          ) &&  count++ < 1000
+          )
       )
     );
     setLoading(false);
@@ -268,7 +267,7 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {viewLogLines.map((l) => (
+              {viewLogLines.filter((l, i) => i <= 1000).map((l) => (
                 <tr key={l.Id} className={"logRow " + l.Level}>
                   <td>{l.Id}</td>
                   <td>{l.Timestamp.toLocaleString()}</td>

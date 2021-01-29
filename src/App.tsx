@@ -2,6 +2,8 @@ import React, { createRef, useEffect, useState } from "react";
 import { Button, Input, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface ILogLineProperties {
   SourceContext: string;
@@ -47,6 +49,8 @@ function App() {
 
   const [filterExceptions, setFilterExceptions] = useState<string[]>([]);
   const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
+  const [filterStartDate, setFilterStartDate] = useState<Date>(new Date(0));
+  const [filterEndDate, setFilterEndDate] = useState<Date>(new Date(0));
 
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
 
@@ -94,6 +98,12 @@ function App() {
     setworkers(newWorkers);
     setFilterWorkers(Array.from(newWorkers.keys()));
 
+    if (objects.length > 0)
+    {
+      setFilterStartDate(objects[0].Timestamp);
+      setFilterEndDate(objects[objects.length - 1].Timestamp);
+    }
+
     setLogLines(objects);
   }, [fileLines]);
 
@@ -106,11 +116,13 @@ function App() {
             filterExceptions.includes(l.Exception.split(" ")[0])) &&
           filterWorkers.includes(
             (l.Properties?.WorkerName ?? "General") + " " + l.Level
-          )
+          ) &&
+          (filterStartDate !== new Date(0) && l.Timestamp >= filterStartDate) &&
+          (filterEndDate !== new Date(0) && l.Timestamp <= filterEndDate)
       )
     );
     setLoading(false);
-  }, [logLines, filterExceptions, filterWorkers]);
+  }, [logLines, filterExceptions, filterWorkers, filterStartDate, filterEndDate]);
 
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const reader = new FileReader();
@@ -253,6 +265,24 @@ function App() {
           </Table>
           <br />
           Events:
+          <br />
+          {"Start Time: "}
+          <DatePicker 
+            selected={filterStartDate ?? (logLines.length > 0 ? logLines[0].Timestamp : new Date())} 
+            onChange={(date) => {if (date instanceof Date) setFilterStartDate(date);}} 
+            showTimeSelect
+            timeFormat="HH:mm"
+            dateFormat="dd.MM.yyyy HH:mm" />
+            <Button onClick={() => setFilterStartDate(logLines[0].Timestamp)}>Clear</Button>
+          <br />
+          {"End Time: "}
+          <DatePicker 
+            selected={filterEndDate ?? (logLines.length > 0 ? logLines[logLines.length - 1].Timestamp : new Date())} 
+            onChange={(date) => {if (date instanceof Date) setFilterEndDate(date);}} 
+            showTimeSelect    
+            timeFormat="HH:mm"      
+            dateFormat="dd.MM.yyyy HH:mm" />
+            <Button onClick={() => setFilterEndDate(logLines[logLines.length - 1].Timestamp)}>Clear</Button>
           <br />
           Showing {viewLogLines.length} out of {logLines.length}
           <Table striped>

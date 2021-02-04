@@ -4,6 +4,7 @@ import "./App.css";
 import Graph from "./components/Graph";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import ReactPaginate from 'react-paginate';
 
 interface ILogLineProperties {
   SourceContext: string;
@@ -53,6 +54,8 @@ function App() {
   const [filterEndDate, setFilterEndDate] = useState<Date>(new Date(0));
 
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
+
+  const [currentPage, setCurrentPage] = useState<number>(0);
 
   useEffect(() => {
     var objects = fileLines
@@ -284,7 +287,30 @@ function App() {
             dateFormat="dd.MM.yyyy HH:mm" />
             <Button onClick={() => setFilterEndDate(logLines[logLines.length - 1].Timestamp)}>Clear</Button>
           <br />
-          Showing {viewLogLines.length} out of {logLines.length}
+          Filtered {viewLogLines.length} out of {logLines.length}
+          <br />
+          Showing {currentPage * 1000} ... {Math.min(viewLogLines.length - currentPage * 1000, 1000) + currentPage * 1000}
+          <ReactPaginate 
+            pageCount={viewLogLines.length / 1000} 
+            onPageChange={(s) => {
+              console.log(s.selected);
+              setCurrentPage(s.selected);
+            }}
+            forcePage={currentPage}
+            disableInitialCallback={true}
+            pageRangeDisplayed={3} 
+            marginPagesDisplayed={1}
+            breakClassName={'page-item'}
+            breakLinkClassName={'page-link'}
+            containerClassName={'pagination'}
+            pageClassName={'page-item'}
+            pageLinkClassName={'page-link'}
+            previousClassName={'page-item'}
+            previousLinkClassName={'page-link'}
+            nextClassName={'page-item'}
+            nextLinkClassName={'page-link'}
+            activeClassName={'active'}
+          />
           <Table striped>
             <thead>
               <tr>
@@ -297,7 +323,7 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {viewLogLines.filter((l, i) => i <= 1000).map((l) => (
+              {viewLogLines.filter((_, i) => i >= (currentPage * 1000) && i < ((currentPage + 1) * 1000)).map((l) => (
                 <tr key={l.Id} className={"logRow " + l.Level}>
                   <td>{l.Id}</td>
                   <td>{l.Timestamp.toLocaleString()}</td>

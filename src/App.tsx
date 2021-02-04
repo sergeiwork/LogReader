@@ -4,7 +4,7 @@ import "./App.css";
 import Graph from "./components/Graph";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import ReactPaginate from 'react-paginate';
+import ReactPaginate from "react-paginate";
 
 interface ILogLineProperties {
   SourceContext: string;
@@ -61,7 +61,7 @@ function App() {
     var objects = fileLines
       .filter((l) => l.trim().length > 0)
       .map<LogLine | null>((l, i) => {
-        try{
+        try {
           const obj = JSON.parse(l);
           return {
             Timestamp: new Date(obj.Timestamp),
@@ -76,7 +76,7 @@ function App() {
         }
       })
       .filter((l) => l !== null)
-      .map<LogLine>(l => l!);
+      .map<LogLine>((l) => l!);
 
     const newExceptions = new Map<string, number>();
     const newWorkers = new Map<string, number>();
@@ -101,8 +101,7 @@ function App() {
     setworkers(newWorkers);
     setFilterWorkers(Array.from(newWorkers.keys()));
 
-    if (objects.length > 0)
-    {
+    if (objects.length > 0) {
       setFilterStartDate(objects[0].Timestamp);
       setFilterEndDate(objects[objects.length - 1].Timestamp);
     }
@@ -120,12 +119,20 @@ function App() {
           filterWorkers.includes(
             (l.Properties?.WorkerName ?? "General") + " " + l.Level
           ) &&
-          (filterStartDate !== new Date(0) && l.Timestamp >= filterStartDate) &&
-          (filterEndDate !== new Date(0) && l.Timestamp <= filterEndDate)
+          filterStartDate !== new Date(0) &&
+          l.Timestamp >= filterStartDate &&
+          filterEndDate !== new Date(0) &&
+          l.Timestamp <= filterEndDate
       )
     );
     setLoading(false);
-  }, [logLines, filterExceptions, filterWorkers, filterStartDate, filterEndDate]);
+  }, [
+    logLines,
+    filterExceptions,
+    filterWorkers,
+    filterStartDate,
+    filterEndDate,
+  ]);
 
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const reader = new FileReader();
@@ -149,167 +156,252 @@ function App() {
       ) : (
         <div style={{ width: "100%" }}>
           <Graph LogLines={viewLogLines} Workers={filterWorkers} />
-          Exceptions:
-          <Table striped bordered>
-            <thead>
-              <tr>
-                <td width="10%">Count</td>
-                <td width="auto">Exception</td>
-                <td width="5%">
-                  <div style={{ display: "flex", flexDirection: "row" }}>
-                    <Button
-                      outline
-                      size="sm"
-                      color="secondary"
-                      style={{ marginRight: 5 }}
-                      onClick={() => setFilterExceptions([])}
-                    >
-                      ☐
-                    </Button>
-                    <Button
-                      outline
-                      size="sm"
-                      color="success"
-                      onClick={() =>
-                        setFilterExceptions(Array.from(exceptions.keys()))
-                      }
-                    >
-                      ☑
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from(exceptions.keys())
-                .sort()
-                .map((k) => (
-                  <tr key={k}>
-                    <td>{exceptions.get(k)}</td>
-                    <td>{k}</td>
-                    <td>
-                      <Input
-                        type="checkbox"
-                        className="tableCheckbox"
-                        checked={filterExceptions.includes(k)}
-                        onChange={(e) => {
-                          if (e.target.checked)
-                            setFilterExceptions([...filterExceptions, k]);
-                          else
-                            setFilterExceptions([
-                              ...filterExceptions.filter((s) => s !== k),
-                            ]);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </Table>
-          <br />
-          Workers:
-          <Table striped bordered>
-            <thead>
-              <tr>
-                <td width="10%">Count</td>
-                <td width="auto">Worker</td>
-                <td width="5%">
-                  <div style={{ display: "flex", flexDirection: "row" }}>
-                    <Button
-                      outline
-                      size="sm"
-                      color="secondary"
-                      style={{ marginRight: 5 }}
-                      onClick={() => setFilterWorkers([])}
-                    >
-                      ☐
-                    </Button>
-                    <Button
-                      outline
-                      size="sm"
-                      color="success"
-                      onClick={() =>
-                        setFilterWorkers(Array.from(workers.keys()))
-                      }
-                    >
-                      ☑
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from(workers.keys())
-                .sort()
-                .map((k) => (
-                  <tr key={k}>
-                    <td>{workers.get(k)}</td>
-                    <td>{k}</td>
-                    <td>
-                      <div>
-                        <Input
-                          type="checkbox"
-                          className="tableCheckbox"
-                          checked={filterWorkers.includes(k)}
-                          onChange={(e) => {
-                            if (e.target.checked)
-                              setFilterWorkers([...filterWorkers, k]);
-                            else
-                              setFilterWorkers([
-                                ...filterWorkers.filter((s) => s !== k),
-                              ]);
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </Table>
-          <br />
+          <div className="accordion" id="settingsAccordion">
+            <div className="card">
+              <div className="card-header" id="exceptionsHeading">
+                <h2 className="mb-0">
+                  <button
+                    className="btn btn-link collapsed"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#exceptionsCollapse"
+                    aria-expanded="true"
+                    aria-controls="exceptionsCollapse"
+                  >
+                    Exceptions
+                  </button>
+                </h2>
+              </div>
+
+              <div
+                id="exceptionsCollapse"
+                className="collapse"
+                aria-labelledby="exceptionsHeading"
+                data-parent="#settingsAccordion"
+              >
+                <div className="card-body">
+                  <Table striped bordered>
+                    <thead>
+                      <tr>
+                        <td width="10%">Count</td>
+                        <td width="auto">Exception</td>
+                        <td width="5%">
+                          <div
+                            style={{ display: "flex", flexDirection: "row" }}
+                          >
+                            <Button
+                              outline
+                              size="sm"
+                              color="secondary"
+                              style={{ marginRight: 5 }}
+                              onClick={() => setFilterExceptions([])}
+                            >
+                              ☐
+                            </Button>
+                            <Button
+                              outline
+                              size="sm"
+                              color="success"
+                              onClick={() =>
+                                setFilterExceptions(
+                                  Array.from(exceptions.keys())
+                                )
+                              }
+                            >
+                              ☑
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from(exceptions.keys())
+                        .sort()
+                        .map((k) => (
+                          <tr key={k}>
+                            <td>{exceptions.get(k)}</td>
+                            <td>{k}</td>
+                            <td>
+                              <Input
+                                type="checkbox"
+                                className="tableCheckbox"
+                                checked={filterExceptions.includes(k)}
+                                onChange={(e) => {
+                                  if (e.target.checked)
+                                    setFilterExceptions([
+                                      ...filterExceptions,
+                                      k,
+                                    ]);
+                                  else
+                                    setFilterExceptions([
+                                      ...filterExceptions.filter(
+                                        (s) => s !== k
+                                      ),
+                                    ]);
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-header" id="workersHeading">
+                <h2 className="mb-0">
+                  <button
+                    className="btn btn-link collapsed"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#workersCollapse"
+                    aria-expanded="true"
+                    aria-controls="workersCollapse"
+                  >
+                    Workers
+                  </button>
+                </h2>
+              </div>
+
+              <div
+                id="workersCollapse"
+                className="collapse"
+                aria-labelledby="workersHeading"
+                data-parent="#settingsAccordion"
+              >
+                <div className="card-body">
+                  <Table striped bordered>
+                    <thead>
+                      <tr>
+                        <td width="10%">Count</td>
+                        <td width="auto">Worker</td>
+                        <td width="5%">
+                          <div
+                            style={{ display: "flex", flexDirection: "row" }}
+                          >
+                            <Button
+                              outline
+                              size="sm"
+                              color="secondary"
+                              style={{ marginRight: 5 }}
+                              onClick={() => setFilterWorkers([])}
+                            >
+                              ☐
+                            </Button>
+                            <Button
+                              outline
+                              size="sm"
+                              color="success"
+                              onClick={() =>
+                                setFilterWorkers(Array.from(workers.keys()))
+                              }
+                            >
+                              ☑
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from(workers.keys())
+                        .sort()
+                        .map((k) => (
+                          <tr key={k}>
+                            <td>{workers.get(k)}</td>
+                            <td>{k}</td>
+                            <td>
+                              <div>
+                                <Input
+                                  type="checkbox"
+                                  className="tableCheckbox"
+                                  checked={filterWorkers.includes(k)}
+                                  onChange={(e) => {
+                                    if (e.target.checked)
+                                      setFilterWorkers([...filterWorkers, k]);
+                                    else
+                                      setFilterWorkers([
+                                        ...filterWorkers.filter((s) => s !== k),
+                                      ]);
+                                  }}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          </div>
           Events:
           <br />
           {"Start Time: "}
-          <DatePicker 
-            selected={filterStartDate ?? (logLines.length > 0 ? logLines[0].Timestamp : new Date())} 
-            onChange={(date) => {if (date instanceof Date) setFilterStartDate(date);}} 
+          <DatePicker
+            selected={
+              filterStartDate ??
+              (logLines.length > 0 ? logLines[0].Timestamp : new Date())
+            }
+            onChange={(date) => {
+              if (date instanceof Date) setFilterStartDate(date);
+            }}
             showTimeSelect
             timeFormat="HH:mm"
-            dateFormat="dd.MM.yyyy HH:mm" />
-            <Button onClick={() => setFilterStartDate(logLines[0].Timestamp)}>Clear</Button>
+            dateFormat="dd.MM.yyyy HH:mm"
+          />
+          <Button onClick={() => setFilterStartDate(logLines[0].Timestamp)}>
+            Clear
+          </Button>
           <br />
           {"End Time: "}
-          <DatePicker 
-            selected={filterEndDate ?? (logLines.length > 0 ? logLines[logLines.length - 1].Timestamp : new Date())} 
-            onChange={(date) => {if (date instanceof Date) setFilterEndDate(date);}} 
-            showTimeSelect    
-            timeFormat="HH:mm"      
-            dateFormat="dd.MM.yyyy HH:mm" />
-            <Button onClick={() => setFilterEndDate(logLines[logLines.length - 1].Timestamp)}>Clear</Button>
+          <DatePicker
+            selected={
+              filterEndDate ??
+              (logLines.length > 0
+                ? logLines[logLines.length - 1].Timestamp
+                : new Date())
+            }
+            onChange={(date) => {
+              if (date instanceof Date) setFilterEndDate(date);
+            }}
+            showTimeSelect
+            timeFormat="HH:mm"
+            dateFormat="dd.MM.yyyy HH:mm"
+          />
+          <Button
+            onClick={() =>
+              setFilterEndDate(logLines[logLines.length - 1].Timestamp)
+            }
+          >
+            Clear
+          </Button>
           <br />
           Filtered {viewLogLines.length} out of {logLines.length}
           <br />
-          Showing {currentPage * 1000} ... {Math.min(viewLogLines.length - currentPage * 1000, 1000) + currentPage * 1000}
-          <ReactPaginate 
-            pageCount={viewLogLines.length / 1000} 
+          Showing {currentPage * 1000} ...{" "}
+          {Math.min(viewLogLines.length - currentPage * 1000, 1000) +
+            currentPage * 1000}
+          <ReactPaginate
+            pageCount={viewLogLines.length / 1000}
             onPageChange={(s) => {
               console.log(s.selected);
               setCurrentPage(s.selected);
             }}
             forcePage={currentPage}
             disableInitialCallback={true}
-            pageRangeDisplayed={3} 
+            pageRangeDisplayed={3}
             marginPagesDisplayed={1}
-            breakClassName={'page-item'}
-            breakLinkClassName={'page-link'}
-            containerClassName={'pagination'}
-            pageClassName={'page-item'}
-            pageLinkClassName={'page-link'}
-            previousClassName={'page-item'}
-            previousLinkClassName={'page-link'}
-            nextClassName={'page-item'}
-            nextLinkClassName={'page-link'}
-            activeClassName={'active'}
+            breakClassName={"page-item"}
+            breakLinkClassName={"page-link"}
+            containerClassName={"pagination"}
+            pageClassName={"page-item"}
+            pageLinkClassName={"page-link"}
+            previousClassName={"page-item"}
+            previousLinkClassName={"page-link"}
+            nextClassName={"page-item"}
+            nextLinkClassName={"page-link"}
+            activeClassName={"active"}
           />
           <Table striped>
             <thead>
@@ -323,16 +415,21 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {viewLogLines.filter((_, i) => i >= (currentPage * 1000) && i < ((currentPage + 1) * 1000)).map((l) => (
-                <tr key={l.Id} className={"logRow " + l.Level}>
-                  <td>{l.Id}</td>
-                  <td>{l.Timestamp.toLocaleString()}</td>
-                  <td>{l.Level}</td>
-                  <td>{l.Properties?.WorkItemKey ?? "*"}</td>
-                  <td>{l.Message}</td>
-                  <td>{l.Exception}</td>
-                </tr>
-              ))}
+              {viewLogLines
+                .filter(
+                  (_, i) =>
+                    i >= currentPage * 1000 && i < (currentPage + 1) * 1000
+                )
+                .map((l) => (
+                  <tr key={l.Id} className={"logRow " + l.Level}>
+                    <td>{l.Id}</td>
+                    <td>{l.Timestamp.toLocaleString()}</td>
+                    <td>{l.Level}</td>
+                    <td>{l.Properties?.WorkItemKey ?? "*"}</td>
+                    <td>{l.Message}</td>
+                    <td>{l.Exception}</td>
+                  </tr>
+                ))}
             </tbody>
           </Table>
         </div>

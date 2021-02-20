@@ -1,23 +1,23 @@
 {
   "files": {
     "main.css": "/LogReader/static/css/main.6e958a8c.chunk.css",
-    "main.js": "/LogReader/static/js/main.fb5bd5ad.chunk.js",
-    "main.js.map": "/LogReader/static/js/main.fb5bd5ad.chunk.js.map",
+    "main.js": "/LogReader/static/js/main.612a18c3.chunk.js",
+    "main.js.map": "/LogReader/static/js/main.612a18c3.chunk.js.map",
     "runtime-main.js": "/LogReader/static/js/runtime-main.08ae4c12.js",
     "runtime-main.js.map": "/LogReader/static/js/runtime-main.08ae4c12.js.map",
     "static/css/2.90c328a7.chunk.css": "/LogReader/static/css/2.90c328a7.chunk.css",
-    "static/js/2.6b34e5be.chunk.js": "/LogReader/static/js/2.6b34e5be.chunk.js",
-    "static/js/2.6b34e5be.chunk.js.map": "/LogReader/static/js/2.6b34e5be.chunk.js.map",
+    "static/js/2.204ff30d.chunk.js": "/LogReader/static/js/2.204ff30d.chunk.js",
+    "static/js/2.204ff30d.chunk.js.map": "/LogReader/static/js/2.204ff30d.chunk.js.map",
     "index.html": "/LogReader/index.html",
     "static/css/2.90c328a7.chunk.css.map": "/LogReader/static/css/2.90c328a7.chunk.css.map",
     "static/css/main.6e958a8c.chunk.css.map": "/LogReader/static/css/main.6e958a8c.chunk.css.map",
-    "static/js/2.6b34e5be.chunk.js.LICENSE.txt": "/LogReader/static/js/2.6b34e5be.chunk.js.LICENSE.txt"
+    "static/js/2.204ff30d.chunk.js.LICENSE.txt": "/LogReader/static/js/2.204ff30d.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.08ae4c12.js",
     "static/css/2.90c328a7.chunk.css",
-    "static/js/2.6b34e5be.chunk.js",
+    "static/js/2.204ff30d.chunk.js",
     "static/css/main.6e958a8c.chunk.css",
-    "static/js/main.fb5bd5ad.chunk.js"
+    "static/js/main.612a18c3.chunk.js"
   ]
 }

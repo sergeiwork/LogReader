@@ -1,5 +1,5 @@
 import React, { createRef, useEffect, useState } from "react";
-import { Button, Input, Spinner, Table } from "reactstrap";
+import { Button, Input, Progress, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
 import DatePicker from "react-datepicker";
@@ -56,6 +56,9 @@ function App() {
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
 
   const [currentPage, setCurrentPage] = useState<number>(0);
+
+  const [loadingProgress, setLoadingProgress] = useState<number>(0);
+  const [loadingTotal, setLoadingTotal] = useState<number>(0);
 
   useEffect(() => {
     var objects = fileLines
@@ -135,13 +138,30 @@ function App() {
   ]);
 
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    setFileLines([]);
     const reader = new FileReader();
+    reader.addEventListener("loadstart", (event) => {
+      console.log("Loading file..");
+      setLoadingProgress(0);
+      setLoading(true);
+    });
+    reader.addEventListener("loadend", (event) => {
+      console.log("File loaded..");
+      setLoading(false);
+    });
+    reader.addEventListener("error", (event) => {
+      console.error("Can not load file", event);
+      setLoading(false);
+    });
+    reader.addEventListener("progress", (event) => {
+      setLoadingProgress(event.loaded);
+      setLoadingTotal(event.total);
+    });
     reader.addEventListener("load", (event) => {
       const lines = (event.target?.result as string).split("\n");
       setFileLines(lines);
-      setLoading(false);
     });
-    setLoading(true);
+
     reader.readAsText(fileInput.current!.files![0]);
   };
 
@@ -152,7 +172,10 @@ function App() {
         Load
       </Button>
       {loading ? (
-        <Spinner color="info" />
+        <div style={{width: "70%"}}>
+          <Spinner color="info" />
+          <Progress value={loadingProgress / loadingTotal * 100} max={100} style={{ width:"100%" }}>{Math.round(loadingProgress / loadingTotal * 100)}%</Progress>
+        </div>
       ) : (
         <div style={{ width: "100%" }}>
           <Graph LogLines={viewLogLines} Workers={filterWorkers} />

@@ -61,6 +61,8 @@ function App() {
   const [loadingTotal, setLoadingTotal] = useState<number>(0);
 
   useEffect(() => {
+    if (loading) return;
+
     var objects = fileLines
       .filter((l) => l.trim().length > 0)
       .map<LogLine | null>((l, i) => {
@@ -110,10 +112,9 @@ function App() {
     }
 
     setLogLines(objects);
-  }, [fileLines]);
+  }, [fileLines, loading]);
 
   useEffect(() => {
-    setLoading(true);
     setViewLogLines(
       logLines.filter(
         (l) =>
@@ -128,7 +129,6 @@ function App() {
           l.Timestamp <= filterEndDate
       )
     );
-    setLoading(false);
   }, [
     logLines,
     filterExceptions,
@@ -139,30 +139,38 @@ function App() {
 
   const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setFileLines([]);
+    const file = fileInput.current!.files![0];
+    const chunkSize = 1024 * 1024 * 100;
+    const totalChunks = file.size / chunkSize + 1;
+    let currentChunk = 0;
+    setLoadingProgress(0);
+    setLoadingTotal(totalChunks);
+    setLoading(true);
     const reader = new FileReader();
-    reader.addEventListener("loadstart", (event) => {
-      console.log("Loading file..");
-      setLoadingProgress(0);
-      setLoading(true);
-    });
-    reader.addEventListener("loadend", (event) => {
-      console.log("File loaded..");
-      setLoading(false);
-    });
     reader.addEventListener("error", (event) => {
       console.error("Can not load file", event);
       setLoading(false);
-    });
-    reader.addEventListener("progress", (event) => {
-      setLoadingProgress(event.loaded);
-      setLoadingTotal(event.total);
+      setFileLines([]);
     });
     reader.addEventListener("load", (event) => {
       const lines = (event.target?.result as string).split("\n");
-      setFileLines(lines);
+      setFileLines((l) => [...l, ...lines]);
+      currentChunk++;
+      console.log(currentChunk, totalChunks);
+      if (currentChunk > totalChunks) {
+        setLoading(false);
+      } else {
+        setLoadingProgress(currentChunk);
+        reader.readAsText(
+          file.slice(
+            currentChunk * chunkSize,
+            Math.min(currentChunk * chunkSize + chunkSize, file.size)
+          )
+        );
+      }
     });
 
-    reader.readAsText(fileInput.current!.files![0]);
+    reader.readAsText(file.slice(0, Math.min(file.size, chunkSize)));
   };
 
   return (
@@ -172,9 +180,15 @@ function App() {
         Load
       </Button>
       {loading ? (
-        <div style={{width: "70%"}}>
+        <div style={{ width: "70%" }}>
           <Spinner color="info" />
-          <Progress value={loadingProgress / loadingTotal * 100} max={100} style={{ width:"100%" }}>{Math.round(loadingProgress / loadingTotal * 100)}%</Progress>
+          <Progress
+            value={(loadingProgress / loadingTotal) * 100}
+            max={100}
+            style={{ width: "100%" }}
+          >
+            {Math.round((loadingProgress / loadingTotal) * 100)}%
+          </Progress>
         </div>
       ) : (
         <div style={{ width: "100%" }}>

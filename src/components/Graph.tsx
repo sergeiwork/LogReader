@@ -63,13 +63,17 @@ function Graph(props: GraphProps) {
       let current = newPoint[worker] as number;
       newPoint[worker] = (isNaN(current) ? 0 : current) + 1;
     }
-    if (!newGraph.includes(newPoint))
-      newGraph.push(newPoint);
+    if (!newGraph.includes(newPoint)) newGraph.push(newPoint);
     setGraphData(newGraph);
   }, [props.LogLines, props.Workers]);
 
   return (
-    <LineChart data={graphData} height={300} width={1000}>
+    <LineChart
+      data={graphData}
+      height={300}
+      width={1000}
+      style={{ zIndex: 100 }}
+    >
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="Time" />
       <YAxis />

@@ -1,10 +1,11 @@
-import React, { createRef, useEffect, useState } from "react";
+import React, { createRef, useCallback, useEffect, useState } from "react";
 import { Button, Input, Progress, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ReactPaginate from "react-paginate";
+import { useDropzone } from "react-dropzone";
 
 interface ILogLineProperties {
   SourceContext: string;
@@ -59,6 +60,13 @@ function App() {
 
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [loadingTotal, setLoadingTotal] = useState<number>(0);
+
+  const onDrop = useCallback((files: File[]) => {
+    if (files.length === 1) {
+      loadFile(files[0]);
+    }
+  }, []);
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   useEffect(() => {
     if (loading) return;
@@ -137,9 +145,8 @@ function App() {
     filterEndDate,
   ]);
 
-  const loadFile = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const loadFile = (file: File) => {
     setFileLines([]);
-    const file = fileInput.current!.files![0];
     const chunkSize = 1024 * 1024 * 100;
     const totalChunks = file.size / chunkSize + 1;
     let currentChunk = 0;
@@ -173,10 +180,26 @@ function App() {
     reader.readAsText(file.slice(0, Math.min(file.size, chunkSize)));
   };
 
+  const loadFileClick = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    loadFile(fileInput.current!.files![0]);
+  };
+
   return (
     <div className="app">
-      <input type="file" ref={fileInput} disabled={loading} accept=".json" />
-      <Button onClick={loadFile} disabled={loading}>
+      <div {...getRootProps()}>
+        <input
+          type="file"
+          ref={fileInput}
+          disabled={loading}
+          accept=".json"
+          {...getInputProps()}
+        >
+          {isDragActive ? "Drop file here" : ""}
+        </input>
+      </div>
+      <Button onClick={loadFileClick} disabled={loading}>
         Load
       </Button>
       {loading ? (

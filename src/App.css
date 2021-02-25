@@ -38,3 +38,13 @@
 .tableCheckbox {
   margin-left: 1rem !important;
 }
+
+.dropzone {
+  width: 15vw;
+  height: 50px;
+  text-align: center;
+  background: salmon;
+  border-width: 3px;
+  border-color: tomato;
+  border-style: dashed;
+}

@@ -188,20 +188,16 @@ function App() {
 
   return (
     <div className="app">
-      <div {...getRootProps()}>
+      <div {...getRootProps()} className="dropzone">
         <input
           type="file"
           ref={fileInput}
           disabled={loading}
           accept=".json"
           {...getInputProps()}
-        >
-          {isDragActive ? "Drop file here" : ""}
-        </input>
+        />
+        {isDragActive ? "Drop file here" : "Click or drag and drop files here"}
       </div>
-      <Button onClick={loadFileClick} disabled={loading}>
-        Load
-      </Button>
       {loading ? (
         <div style={{ width: "70%" }}>
           <Spinner color="info" />

@@ -422,7 +422,6 @@ function App() {
           <ReactPaginate
             pageCount={viewLogLines.length / 1000}
             onPageChange={(s) => {
-              console.log(s.selected);
               setCurrentPage(s.selected);
             }}
             forcePage={currentPage}
@@ -440,7 +439,7 @@ function App() {
             nextLinkClassName={"page-link"}
             activeClassName={"active"}
           />
-          <Table striped>
+          <Table striped id="mainTable">
             <thead>
               <tr>
                 <td width="5%">#</td>
@@ -459,16 +458,53 @@ function App() {
                 )
                 .map((l) => (
                   <tr key={l.Id} className={"logRow " + l.Level}>
-                    <td>{l.Id}</td>
-                    <td>{l.Timestamp.toLocaleString()}</td>
-                    <td>{l.Level}</td>
-                    <td>{l.Properties?.WorkItemKey ?? "*"}</td>
-                    <td>{l.Message}</td>
-                    <td>{l.Exception}</td>
+                    <td>
+                      <p style={{ wordWrap: "break-word" }}>{l.Id}</p>
+                    </td>
+                    <td>
+                      <p style={{ wordWrap: "break-word" }}>
+                        {l.Timestamp.toLocaleString()}
+                      </p>
+                    </td>
+                    <td>
+                      <p style={{ wordWrap: "break-word" }}>{l.Level}</p>
+                    </td>
+                    <td>
+                      <p style={{ wordWrap: "break-word" }}>
+                        {l.Properties?.WorkItemKey ?? "*"}
+                      </p>
+                    </td>
+                    <td>
+                      <p style={{ wordWrap: "break-word" }}>{l.Message}</p>
+                    </td>
+                    <td>
+                      <p style={{ wordWrap: "break-word" }}>{l.Exception}</p>
+                    </td>
                   </tr>
                 ))}
             </tbody>
           </Table>
+          <ReactPaginate
+            pageCount={viewLogLines.length / 1000}
+            onPageChange={(s) => {
+              setCurrentPage(s.selected);
+              document.getElementById("mainTable")?.scrollIntoView();
+            }}
+            forcePage={currentPage}
+            disableInitialCallback={true}
+            pageRangeDisplayed={3}
+            marginPagesDisplayed={1}
+            breakClassName={"page-item"}
+            breakLinkClassName={"page-link"}
+            containerClassName={"pagination"}
+            pageClassName={"page-item"}
+            pageLinkClassName={"page-link"}
+            previousClassName={"page-item"}
+            previousLinkClassName={"page-link"}
+            nextClassName={"page-item"}
+            nextLinkClassName={"page-link"}
+            activeClassName={"active"}
+          />
         </div>
       )}
     </div>

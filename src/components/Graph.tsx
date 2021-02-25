@@ -7,6 +7,7 @@ import {
   Legend,
   Line,
   Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { LogLine } from "../App";
 
@@ -68,26 +69,28 @@ function Graph(props: GraphProps) {
   }, [props.LogLines, props.Workers]);
 
   return (
-    <LineChart
-      data={graphData}
-      height={300}
-      width={1000}
-      style={{ zIndex: 100 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="Time" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      {props.Workers.map((w) => (
-        <Line
-          type="monotone"
-          dataKey={w}
-          stroke={"#" + Math.floor(Math.random() * 16777215).toString(16)}
-          key={w}
-        />
-      ))}
-    </LineChart>
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart
+        data={graphData}
+        height={300}
+        width={1000}
+        style={{ zIndex: 100 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="Time" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        {props.Workers.map((w) => (
+          <Line
+            type="monotone"
+            dataKey={w}
+            stroke={"#" + Math.floor(Math.random() * 16777215).toString(16)}
+            key={w}
+          />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
   );
 }
 

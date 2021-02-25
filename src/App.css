@@ -7,8 +7,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 60vw;
-  min-width: 60vw;
+  max-width: 80vw;
+  min-width: 80vw;
 }
 
 .logRow {

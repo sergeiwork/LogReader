@@ -41,6 +41,7 @@ const format = (str: string, obj: any): string => {
 
 function App() {
   const fileInput = createRef<HTMLInputElement>();
+  const fileInput2 = createRef<HTMLInputElement>();
   const [fileLines, setFileLines] = useState<string[]>([]);
   const [logLines, setLogLines] = useState<LogLine[]>([]);
 
@@ -164,10 +165,10 @@ function App() {
       setFileLines((l) => [...l, ...lines]);
       currentChunk++;
       console.log(currentChunk, totalChunks);
+      setLoadingProgress(currentChunk);
       if (currentChunk > totalChunks) {
         setLoading(false);
       } else {
-        setLoadingProgress(currentChunk);
         reader.readAsText(
           file.slice(
             currentChunk * chunkSize,
@@ -180,14 +181,71 @@ function App() {
     reader.readAsText(file.slice(0, Math.min(file.size, chunkSize)));
   };
 
+  function parseFile(file: File, map: Map<string, number>) {
+    var fileSize   = file.size;
+    var chunkSize  = 100 * 1024 * 1024;
+    var offset     = 0;
+    var readBlock  = function(_offset: number, length: number, _file: File) {
+      var r = new FileReader();
+      var blob = _file.slice(_offset, length + _offset);
+      r.onload = onLoadHandler;
+      r.readAsText(blob);
+    };
+
+    var onLoadHandler = function(evt: ProgressEvent<FileReader>) {
+        if (evt?.target?.error == null) {
+            offset += (evt.target!.result! as string).length;
+            var res = evt.target!.result as string;
+            var lines = res.split("\n");
+            console.log(lines.length);
+            var fullRegex = /"Level":"([A-Za-z]+)".*"WorkerName":"([A-Za-z]+)"/;
+            var levelOnlyRegex = /"Level":"([A-Za-z]+)"/;
+            lines.forEach(line => {
+              let key = "";
+              var match: RegExpMatchArray | null = null;
+              if ((match = line.match(fullRegex)) !== null)
+              {
+                var level = match![1];
+                var worker = match![2];
+                key = level+worker;
+              } else if ((match = line.match(levelOnlyRegex)) !== null)
+              {
+                key = match![1];
+              }
+              if (key !== "") if (!map.has(key)) map.set(key, 1); else map.set(key, map.get(key)! + 1);
+            });
+        } else {
+            console.log(evt.target.error);
+            return;
+        }
+        if (offset >= fileSize) {
+            console.log("Success reading " + file.name);
+            return;
+        }
+
+        console.log(map);
+        readBlock(offset, chunkSize, file);
+    }
+
+    readBlock(offset, chunkSize, file);
+}
+
   const loadFileClick = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
-    loadFile(fileInput.current!.files![0]);
+    console.log(fileInput2.current!.files);    
+    var map = new Map<string, number>();
+    for (var i = 0; i < fileInput2.current!.files!.length; i++) {
+      parseFile(fileInput2.current!.files?.item(i)!, map);
+    }
   };
 
   return (
     <div className="app">
+      <div>
+        <input type="file" accept=".json" ref={fileInput2} multiple/>
+        <button onClick={loadFileClick}>Load</button>
+      </div>
       <div {...getRootProps()} className="dropzone">
         <input
           type="file"

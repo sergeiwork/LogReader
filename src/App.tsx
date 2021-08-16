@@ -194,6 +194,7 @@ function App() {
 
   return (
     <div className="app">
+      <div style={{position: "absolute", left: "0px", top: "0px", color: "lightgray"}}>v0.1</div>
       <div>
         <div {...getRootProps()} className="dropzone">
           <input

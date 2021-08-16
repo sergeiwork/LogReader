@@ -61,6 +61,8 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [loadingTotal, setLoadingTotal] = useState<number>(0);
 
+  const [currentFile, setCurrentFile] = useState('');
+
   const onDrop = useCallback((files: File[]) => {
     if (files.length === 1) {
       loadFile(files[0]);
@@ -150,6 +152,7 @@ function App() {
     const chunkSize = 1024 * 1024 * 100;
     const totalChunks = file.size / chunkSize + 1;
     let currentChunk = 0;
+    setCurrentFile(file.name);
     setLoadingProgress(0);
     setLoadingTotal(totalChunks);
     setLoading(true);
@@ -158,6 +161,8 @@ function App() {
       console.error("Can not load file", event);
       setLoading(false);
       setFileLines([]);
+      setCurrentPage(0);
+      setCurrentFile('');
     });
     reader.addEventListener("load", (event) => {
       const lines = (event.target?.result as string).split("\n");
@@ -166,6 +171,7 @@ function App() {
       console.log(currentChunk, totalChunks);
       if (currentChunk > totalChunks) {
         setLoading(false);
+        setCurrentPage(0);
       } else {
         setLoadingProgress(currentChunk);
         reader.readAsText(
@@ -188,15 +194,18 @@ function App() {
 
   return (
     <div className="app">
-      <div {...getRootProps()} className="dropzone">
-        <input
-          type="file"
-          ref={fileInput}
-          disabled={loading}
-          accept=".json"
-          {...getInputProps()}
-        />
-        {isDragActive ? "Drop file here" : "Click or drag and drop files here"}
+      <div>
+        <div {...getRootProps()} className="dropzone">
+          <input
+            type="file"
+            ref={fileInput}
+            disabled={loading}
+            accept=".json"
+            {...getInputProps()}
+            />
+          {isDragActive ? "Drop file here" : "Click or drag and drop files here"}
+        </div>
+        <div>{currentFile}</div>
       </div>
       {loading ? (
         <div style={{ width: "70%" }}>

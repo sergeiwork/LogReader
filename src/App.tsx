@@ -1,4 +1,4 @@
-import React, { createRef, useCallback, useEffect, useState } from "react";
+import React, { createRef, useCallback, useEffect, useState, version } from "react";
 import { Button, Input, Progress, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
@@ -40,6 +40,8 @@ const format = (str: string, obj: any): string => {
 };
 
 function App() {
+  const versionNumber = "0.2";
+
   const fileInput = createRef<HTMLInputElement>();
   const [fileLines, setFileLines] = useState<string[]>([]);
   const [logLines, setLogLines] = useState<LogLine[]>([]);
@@ -202,7 +204,7 @@ function App() {
 
   return (
     <div className="app">
-      <div style={{position: "absolute", left: "0px", top: "0px", color: "lightgray"}}>v0.1</div>
+      <div style={{position: "absolute", left: "0px", top: "0px", color: "lightgray"}}>v{versionNumber}</div>
       <div>
         <div {...getRootProps()} className="dropzone">
           <input

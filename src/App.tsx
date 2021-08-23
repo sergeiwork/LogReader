@@ -45,7 +45,7 @@ function App() {
   const [logLines, setLogLines] = useState<LogLine[]>([]);
 
   const [exceptions, setExceptions] = useState(new Map<string, number>());
-  const [workers, setworkers] = useState(new Map<string, number>());
+  const [workers, setWorkers] = useState(new Map<string, number>());
 
   const [loading, setLoading] = useState(false);
 
@@ -53,6 +53,10 @@ function App() {
   const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
   const [filterStartDate, setFilterStartDate] = useState<Date>(new Date(0));
   const [filterEndDate, setFilterEndDate] = useState<Date>(new Date(0));
+
+  const [filterExceptionsStaging, setFilterExceptionsStaging] = useState<string[]>([])
+  const [filterWorkersStaging, setFilterWorkersStaging] = useState<string[]>([])
+  const [filterModified, setFilterModified] = useState(false)
 
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
 
@@ -69,6 +73,8 @@ function App() {
     }
   }, []);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
+  useEffect(() => setFilterModified(true), [filterExceptionsStaging, filterWorkersStaging]);
 
   useEffect(() => {
     if (loading) return;
@@ -111,15 +117,16 @@ function App() {
     }
 
     setExceptions(newExceptions);
-    setFilterExceptions(Array.from(newExceptions.keys()));
+    setFilterExceptionsStaging(Array.from(newExceptions.keys()));
 
-    setworkers(newWorkers);
-    setFilterWorkers(Array.from(newWorkers.keys()));
+    setWorkers(newWorkers);
+    setFilterWorkersStaging(Array.from(newWorkers.keys()));
 
     if (objects.length > 0) {
       setFilterStartDate(objects[0].Timestamp);
       setFilterEndDate(objects[objects.length - 1].Timestamp);
     }
+    applyFilters();
 
     setLogLines(objects);
   }, [fileLines, loading]);
@@ -163,6 +170,7 @@ function App() {
       setFileLines([]);
       setCurrentPage(0);
       setCurrentFile('');
+      applyFilters();
     });
     reader.addEventListener("load", (event) => {
       const lines = (event.target?.result as string).split("\n");
@@ -186,11 +194,11 @@ function App() {
     reader.readAsText(file.slice(0, Math.min(file.size, chunkSize)));
   };
 
-  const loadFileClick = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    loadFile(fileInput.current!.files![0]);
-  };
+  const applyFilters = () => {
+    setFilterExceptions([...filterExceptionsStaging]);
+    setFilterWorkers([...filterWorkersStaging]);
+    setFilterModified(false);
+  }
 
   return (
     <div className="app">
@@ -223,6 +231,7 @@ function App() {
         <div style={{ width: "100%" }}>
           <Graph LogLines={viewLogLines} Workers={filterWorkers} />
           <div className="accordion" id="settingsAccordion">
+            <Button onClick={() => applyFilters() } disabled={!filterModified}>Apply settings</Button>
             <div className="card">
               <div className="card-header" id="exceptionsHeading">
                 <h2 className="mb-0">
@@ -260,7 +269,7 @@ function App() {
                               size="sm"
                               color="secondary"
                               style={{ marginRight: 5 }}
-                              onClick={() => setFilterExceptions([])}
+                              onClick={() => setFilterExceptionsStaging([])}
                             >
                               ☐
                             </Button>
@@ -269,7 +278,7 @@ function App() {
                               size="sm"
                               color="success"
                               onClick={() =>
-                                setFilterExceptions(
+                                setFilterExceptionsStaging(
                                   Array.from(exceptions.keys())
                                 )
                               }
@@ -291,16 +300,16 @@ function App() {
                               <Input
                                 type="checkbox"
                                 className="tableCheckbox"
-                                checked={filterExceptions.includes(k)}
+                                checked={filterExceptionsStaging.includes(k)}
                                 onChange={(e) => {
                                   if (e.target.checked)
-                                    setFilterExceptions([
-                                      ...filterExceptions,
+                                    setFilterExceptionsStaging([
+                                      ...filterExceptionsStaging,
                                       k,
                                     ]);
                                   else
-                                    setFilterExceptions([
-                                      ...filterExceptions.filter(
+                                    setFilterExceptionsStaging([
+                                      ...filterExceptionsStaging.filter(
                                         (s) => s !== k
                                       ),
                                     ]);
@@ -351,7 +360,7 @@ function App() {
                               size="sm"
                               color="secondary"
                               style={{ marginRight: 5 }}
-                              onClick={() => setFilterWorkers([])}
+                              onClick={() => setFilterWorkersStaging([])}
                             >
                               ☐
                             </Button>
@@ -360,7 +369,7 @@ function App() {
                               size="sm"
                               color="success"
                               onClick={() =>
-                                setFilterWorkers(Array.from(workers.keys()))
+                                setFilterWorkersStaging(Array.from(workers.keys()))
                               }
                             >
                               ☑
@@ -381,13 +390,13 @@ function App() {
                                 <Input
                                   type="checkbox"
                                   className="tableCheckbox"
-                                  checked={filterWorkers.includes(k)}
+                                  checked={filterWorkersStaging.includes(k)}
                                   onChange={(e) => {
                                     if (e.target.checked)
-                                      setFilterWorkers([...filterWorkers, k]);
+                                      setFilterWorkersStaging([...filterWorkersStaging, k]);
                                     else
-                                      setFilterWorkers([
-                                        ...filterWorkers.filter((s) => s !== k),
+                                      setFilterWorkersStaging([
+                                        ...filterWorkersStaging.filter((s) => s !== k),
                                       ]);
                                   }}
                                 />
@@ -496,7 +505,11 @@ function App() {
                       </p>
                     </td>
                     <td>
-                      <p style={{ wordWrap: "break-word" }}>{l.Level}</p>
+                      <div>
+                        <p style={{ wordWrap: "break-word" }}>{l.Level}</p>
+                        <p style={{ wordWrap: "break-word" }}>{l.Properties?.MetricName}</p>
+                        <p style={{ wordWrap: "break-word" }}>{l.Properties?.ConcurrentTaskIndex}</p>
+                      </div>
                     </td>
                     <td>
                       <p style={{ wordWrap: "break-word" }}>

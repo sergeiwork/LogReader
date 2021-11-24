@@ -522,7 +522,7 @@ function App() {
                       <p style={{ wordWrap: "break-word" }}>{l.Message}</p>
                     </td>
                     <td>
-                      <p style={{ wordWrap: "break-word"; whiteSpace: "break-spaces" }}>{l.Exception}</p>
+                      <p style={{ wordWrap: "break-word", whiteSpace: "break-spaces" }}>{l.Exception}</p>
                     </td>
                   </tr>
                 ))}

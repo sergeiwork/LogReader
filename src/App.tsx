@@ -48,16 +48,19 @@ function App() {
 
   const [exceptions, setExceptions] = useState(new Map<string, number>());
   const [workers, setWorkers] = useState(new Map<string, number>());
+  const [applicationSessionIds, setApplicationSessionIds] = useState(new Map<string, number>());
 
   const [loading, setLoading] = useState(false);
 
   const [filterExceptions, setFilterExceptions] = useState<string[]>([]);
   const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
+  const [filterApplicationSessionIds, setFilterApplicationSessionIds] = useState<string[]>([]);
   const [filterStartDate, setFilterStartDate] = useState<Date>(new Date(0));
   const [filterEndDate, setFilterEndDate] = useState<Date>(new Date(0));
 
   const [filterExceptionsStaging, setFilterExceptionsStaging] = useState<string[]>([])
   const [filterWorkersStaging, setFilterWorkersStaging] = useState<string[]>([])
+  const [filterApplicationSessionIdsStaging, setFilterApplicationSessionIdsStaging] = useState<string[]>([])
   const [filterModified, setFilterModified] = useState(false)
 
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
@@ -76,7 +79,7 @@ function App() {
   }, []);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-  useEffect(() => setFilterModified(true), [filterExceptionsStaging, filterWorkersStaging]);
+  useEffect(() => setFilterModified(true), [filterExceptionsStaging, filterWorkersStaging, filterApplicationSessionIdsStaging]);
 
   useEffect(() => {
     if (loading) return;
@@ -103,6 +106,7 @@ function App() {
 
     const newExceptions = new Map<string, number>();
     const newWorkers = new Map<string, number>();
+    const newApplicationSessionIds = new Map<string, number>();
 
     for (let log of objects) {
       if (log.Exception) {
@@ -116,6 +120,11 @@ function App() {
       if (newWorkers.has(worker))
         newWorkers.set(worker, newWorkers.get(worker)! + 1);
       else newWorkers.set(worker, 1);
+
+      let applicationSessionId = log.Properties?.ApplicationSessionId ?? "";
+      if (newApplicationSessionIds.has(applicationSessionId))
+        newApplicationSessionIds.set(applicationSessionId, newApplicationSessionIds.get(applicationSessionId)! + 1);
+      else newApplicationSessionIds.set(applicationSessionId, 1);
     }
 
     setExceptions(newExceptions);
@@ -123,6 +132,9 @@ function App() {
 
     setWorkers(newWorkers);
     setFilterWorkersStaging(Array.from(newWorkers.keys()));
+
+    setApplicationSessionIds(newApplicationSessionIds);
+    setFilterApplicationSessionIdsStaging(Array.from(newApplicationSessionIds.keys()));
 
     if (objects.length > 0) {
       setFilterStartDate(objects[0].Timestamp);
@@ -137,11 +149,9 @@ function App() {
     setViewLogLines(
       logLines.filter(
         (l) =>
-          (!l.Exception ||
-            filterExceptions.includes(l.Exception.split(" ")[0])) &&
-          filterWorkers.includes(
-            (l.Properties?.WorkerName ?? "General") + " " + l.Level
-          ) &&
+          (!l.Exception || filterExceptions.includes(l.Exception.split(" ")[0])) &&
+          filterWorkers.includes((l.Properties?.WorkerName ?? "General") + " " + l.Level) &&
+          filterApplicationSessionIds.includes(l.Properties?.ApplicationSessionId ?? "") &&
           filterStartDate !== new Date(0) &&
           l.Timestamp >= filterStartDate &&
           filterEndDate !== new Date(0) &&
@@ -152,6 +162,7 @@ function App() {
     logLines,
     filterExceptions,
     filterWorkers,
+    filterApplicationSessionIds,
     filterStartDate,
     filterEndDate,
   ]);
@@ -199,6 +210,7 @@ function App() {
   const applyFilters = () => {
     setFilterExceptions([...filterExceptionsStaging]);
     setFilterWorkers([...filterWorkersStaging]);
+    setFilterApplicationSessionIds([...filterApplicationSessionIdsStaging]);
     setFilterModified(false);
   }
 
@@ -410,6 +422,97 @@ function App() {
                   </Table>
                 </div>
               </div>
+              <div className="card">
+              <div className="card-header" id="exceptionsHeading">
+                <h2 className="mb-0">
+                  <button
+                    className="btn btn-link collapsed"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#applicationSessionIdsCollapse"
+                    aria-expanded="true"
+                    aria-controls="applicationSessionIdsCollapse"
+                  >
+                    Application Session Ids
+                  </button>
+                </h2>
+              </div>
+
+              <div
+                id="applicationSessionIdsCollapse"
+                className="collapse"
+                aria-labelledby="applicationSessionIdsHeading"
+                data-parent="#settingsAccordion"
+              >
+                <div className="card-body">
+                  <Table striped bordered>
+                    <thead>
+                      <tr>
+                        <td width="10%">Count</td>
+                        <td width="auto">Application Session Id</td>
+                        <td width="5%">
+                          <div
+                            style={{ display: "flex", flexDirection: "row" }}
+                          >
+                            <Button
+                              outline
+                              size="sm"
+                              color="secondary"
+                              style={{ marginRight: 5 }}
+                              onClick={() => setFilterApplicationSessionIdsStaging([])}
+                            >
+                              ☐
+                            </Button>
+                            <Button
+                              outline
+                              size="sm"
+                              color="success"
+                              onClick={() =>
+                                setFilterApplicationSessionIdsStaging(
+                                  Array.from(applicationSessionIds.keys())
+                                )
+                              }
+                            >
+                              ☑
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from(applicationSessionIds.keys())
+                        .sort()
+                        .map((k) => (
+                          <tr key={k}>
+                            <td>{applicationSessionIds.get(k)}</td>
+                            <td>{k}</td>
+                            <td>
+                              <Input
+                                type="checkbox"
+                                className="tableCheckbox"
+                                checked={filterApplicationSessionIdsStaging.includes(k)}
+                                onChange={(e) => {
+                                  if (e.target.checked)
+                                    setFilterApplicationSessionIdsStaging([
+                                      ...filterApplicationSessionIdsStaging,
+                                      k,
+                                    ]);
+                                  else
+                                  setFilterApplicationSessionIdsStaging([
+                                      ...filterApplicationSessionIdsStaging.filter(
+                                        (s) => s !== k
+                                      ),
+                                    ]);
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
           Events:

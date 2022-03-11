@@ -49,6 +49,7 @@ function App() {
   const [exceptions, setExceptions] = useState(new Map<string, number>());
   const [workers, setWorkers] = useState(new Map<string, number>());
   const [applicationSessionIds, setApplicationSessionIds] = useState(new Map<string, number>());
+  const [applicationSessionIdTimestamps, setApplicationSessionIdTimestamps] = useState(new Map<string, Date>());
 
   const [loading, setLoading] = useState(false);
 
@@ -135,6 +136,18 @@ function App() {
 
     setApplicationSessionIds(newApplicationSessionIds);
     setFilterApplicationSessionIdsStaging(Array.from(newApplicationSessionIds.keys()));
+
+    var newApplicationSessionIdTimestamps = Array.from(newApplicationSessionIds.keys())
+    .reduce(function (map:Map<string, Date>, sessionId:string)
+      {
+        map.set(sessionId, objects
+          .filter(line => line.Properties?.ApplicationSessionId === sessionId)
+          .reduce(function (date: Date, line: LogLine) { return line.Timestamp < date ? line.Timestamp : date; }, new Date(9999, 12, 31)));
+
+        return map;
+      }, new Map<string, Date>());
+    
+    setApplicationSessionIdTimestamps(newApplicationSessionIdTimestamps);
 
     if (objects.length > 0) {
       setFilterStartDate(objects[0].Timestamp);
@@ -450,6 +463,7 @@ function App() {
                       <tr>
                         <td width="10%">Count</td>
                         <td width="auto">Application Session Id</td>
+                        <td width="auto">Start time</td>
                         <td width="5%">
                           <div
                             style={{ display: "flex", flexDirection: "row" }}
@@ -486,6 +500,7 @@ function App() {
                           <tr key={k}>
                             <td>{applicationSessionIds.get(k)}</td>
                             <td>{k}</td>
+                            <td>{applicationSessionIdTimestamps.get(k)?.toString()}</td>
                             <td>
                               <Input
                                 type="checkbox"

@@ -46,7 +46,7 @@ const format = (str: string, obj: any): string => {
 };
 
 function App() {
-  const versionNumber = "0.5";
+  const versionNumber = "0.5.1";
 
   const fileInput = createRef<HTMLInputElement>();
   const [fileLines, setFileLines] = useState<string[]>([]);

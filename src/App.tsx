@@ -1,4 +1,10 @@
-import React, { createRef, useCallback, useEffect, useState, version } from "react";
+import React, {
+  createRef,
+  useCallback,
+  useEffect,
+  useState,
+  version,
+} from "react";
 import { Button, Input, Progress, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
@@ -48,21 +54,32 @@ function App() {
 
   const [exceptions, setExceptions] = useState(new Map<string, number>());
   const [workers, setWorkers] = useState(new Map<string, number>());
-  const [applicationSessionIds, setApplicationSessionIds] = useState(new Map<string, number>());
-  const [applicationSessionIdTimestamps, setApplicationSessionIdTimestamps] = useState(new Map<string, Date>());
+  const [applicationSessionIds, setApplicationSessionIds] = useState(
+    new Map<string, number>()
+  );
+  const [applicationSessionIdTimestamps, setApplicationSessionIdTimestamps] =
+    useState(new Map<string, Date>());
 
   const [loading, setLoading] = useState(false);
 
   const [filterExceptions, setFilterExceptions] = useState<string[]>([]);
   const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
-  const [filterApplicationSessionIds, setFilterApplicationSessionIds] = useState<string[]>([]);
+  const [filterApplicationSessionIds, setFilterApplicationSessionIds] =
+    useState<string[]>([]);
   const [filterStartDate, setFilterStartDate] = useState<Date>(new Date(0));
   const [filterEndDate, setFilterEndDate] = useState<Date>(new Date(0));
 
-  const [filterExceptionsStaging, setFilterExceptionsStaging] = useState<string[]>([])
-  const [filterWorkersStaging, setFilterWorkersStaging] = useState<string[]>([])
-  const [filterApplicationSessionIdsStaging, setFilterApplicationSessionIdsStaging] = useState<string[]>([])
-  const [filterModified, setFilterModified] = useState(false)
+  const [filterExceptionsStaging, setFilterExceptionsStaging] = useState<
+    string[]
+  >([]);
+  const [filterWorkersStaging, setFilterWorkersStaging] = useState<string[]>(
+    []
+  );
+  const [
+    filterApplicationSessionIdsStaging,
+    setFilterApplicationSessionIdsStaging,
+  ] = useState<string[]>([]);
+  const [filterModified, setFilterModified] = useState(false);
 
   const [viewLogLines, setViewLogLines] = useState<LogLine[]>([]);
 
@@ -71,7 +88,7 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [loadingTotal, setLoadingTotal] = useState<number>(0);
 
-  const [currentFile, setCurrentFile] = useState('');
+  const [currentFile, setCurrentFile] = useState("");
 
   const onDrop = useCallback((files: File[]) => {
     if (files.length === 1) {
@@ -80,7 +97,14 @@ function App() {
   }, []);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-  useEffect(() => setFilterModified(true), [filterExceptionsStaging, filterWorkersStaging, filterApplicationSessionIdsStaging]);
+  useEffect(
+    () => setFilterModified(true),
+    [
+      filterExceptionsStaging,
+      filterWorkersStaging,
+      filterApplicationSessionIdsStaging,
+    ]
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -124,7 +148,10 @@ function App() {
 
       let applicationSessionId = log.Properties?.ApplicationSessionId ?? "";
       if (newApplicationSessionIds.has(applicationSessionId))
-        newApplicationSessionIds.set(applicationSessionId, newApplicationSessionIds.get(applicationSessionId)! + 1);
+        newApplicationSessionIds.set(
+          applicationSessionId,
+          newApplicationSessionIds.get(applicationSessionId)! + 1
+        );
       else newApplicationSessionIds.set(applicationSessionId, 1);
     }
 
@@ -135,18 +162,25 @@ function App() {
     setFilterWorkersStaging(Array.from(newWorkers.keys()));
 
     setApplicationSessionIds(newApplicationSessionIds);
-    setFilterApplicationSessionIdsStaging(Array.from(newApplicationSessionIds.keys()));
+    setFilterApplicationSessionIdsStaging(
+      Array.from(newApplicationSessionIds.keys())
+    );
 
-    var newApplicationSessionIdTimestamps = Array.from(newApplicationSessionIds.keys())
-    .reduce(function (map:Map<string, Date>, sessionId:string)
-      {
-        map.set(sessionId, objects
-          .filter(line => line.Properties?.ApplicationSessionId === sessionId)
-          .reduce(function (date: Date, line: LogLine) { return line.Timestamp < date ? line.Timestamp : date; }, new Date(9999, 12, 31)));
+    var newApplicationSessionIdTimestamps = Array.from(
+      newApplicationSessionIds.keys()
+    ).reduce(function (map: Map<string, Date>, sessionId: string) {
+      map.set(
+        sessionId,
+        objects
+          .filter((line) => line.Properties?.ApplicationSessionId === sessionId)
+          .reduce(function (date: Date, line: LogLine) {
+            return line.Timestamp < date ? line.Timestamp : date;
+          }, new Date(9999, 12, 31))
+      );
 
-        return map;
-      }, new Map<string, Date>());
-    
+      return map;
+    }, new Map<string, Date>());
+
     setApplicationSessionIdTimestamps(newApplicationSessionIdTimestamps);
 
     if (objects.length > 0) {
@@ -162,9 +196,14 @@ function App() {
     setViewLogLines(
       logLines.filter(
         (l) =>
-          (!l.Exception || filterExceptions.includes(l.Exception.split(" ")[0])) &&
-          filterWorkers.includes((l.Properties?.WorkerName ?? "General") + " " + l.Level) &&
-          filterApplicationSessionIds.includes(l.Properties?.ApplicationSessionId ?? "") &&
+          (!l.Exception ||
+            filterExceptions.includes(l.Exception.split(" ")[0])) &&
+          filterWorkers.includes(
+            (l.Properties?.WorkerName ?? "General") + " " + l.Level
+          ) &&
+          filterApplicationSessionIds.includes(
+            l.Properties?.ApplicationSessionId ?? ""
+          ) &&
           filterStartDate !== new Date(0) &&
           l.Timestamp >= filterStartDate &&
           filterEndDate !== new Date(0) &&
@@ -195,7 +234,7 @@ function App() {
       setLoading(false);
       setFileLines([]);
       setCurrentPage(0);
-      setCurrentFile('');
+      setCurrentFile("");
       applyFilters();
     });
     reader.addEventListener("load", (event) => {
@@ -225,11 +264,20 @@ function App() {
     setFilterWorkers([...filterWorkersStaging]);
     setFilterApplicationSessionIds([...filterApplicationSessionIdsStaging]);
     setFilterModified(false);
-  }
+  };
 
   return (
     <div className="app">
-      <div style={{position: "absolute", left: "0px", top: "0px", color: "lightgray"}}>v{versionNumber}</div>
+      <div
+        style={{
+          position: "absolute",
+          left: "0px",
+          top: "0px",
+          color: "lightgray",
+        }}
+      >
+        v{versionNumber}
+      </div>
       <div>
         <div {...getRootProps()} className="dropzone">
           <input
@@ -238,8 +286,10 @@ function App() {
             disabled={loading}
             accept=".json"
             {...getInputProps()}
-            />
-          {isDragActive ? "Drop file here" : "Click or drag and drop files here"}
+          />
+          {isDragActive
+            ? "Drop file here"
+            : "Click or drag and drop files here"}
         </div>
         <div>{currentFile}</div>
       </div>
@@ -258,7 +308,9 @@ function App() {
         <div style={{ width: "100%" }}>
           <Graph LogLines={viewLogLines} Workers={filterWorkers} />
           <div className="accordion" id="settingsAccordion">
-            <Button onClick={() => applyFilters() } disabled={!filterModified}>Apply settings</Button>
+            <Button onClick={() => applyFilters()} disabled={!filterModified}>
+              Apply settings
+            </Button>
             <div className="card">
               <div className="card-header" id="exceptionsHeading">
                 <h2 className="mb-0">
@@ -396,7 +448,9 @@ function App() {
                               size="sm"
                               color="success"
                               onClick={() =>
-                                setFilterWorkersStaging(Array.from(workers.keys()))
+                                setFilterWorkersStaging(
+                                  Array.from(workers.keys())
+                                )
                               }
                             >
                               ☑
@@ -420,10 +474,15 @@ function App() {
                                   checked={filterWorkersStaging.includes(k)}
                                   onChange={(e) => {
                                     if (e.target.checked)
-                                      setFilterWorkersStaging([...filterWorkersStaging, k]);
+                                      setFilterWorkersStaging([
+                                        ...filterWorkersStaging,
+                                        k,
+                                      ]);
                                     else
                                       setFilterWorkersStaging([
-                                        ...filterWorkersStaging.filter((s) => s !== k),
+                                        ...filterWorkersStaging.filter(
+                                          (s) => s !== k
+                                        ),
                                       ]);
                                   }}
                                 />
@@ -436,98 +495,106 @@ function App() {
                 </div>
               </div>
               <div className="card">
-              <div className="card-header" id="exceptionsHeading">
-                <h2 className="mb-0">
-                  <button
-                    className="btn btn-link collapsed"
-                    type="button"
-                    data-toggle="collapse"
-                    data-target="#applicationSessionIdsCollapse"
-                    aria-expanded="true"
-                    aria-controls="applicationSessionIdsCollapse"
-                  >
-                    Application Session Ids
-                  </button>
-                </h2>
-              </div>
+                <div className="card-header" id="exceptionsHeading">
+                  <h2 className="mb-0">
+                    <button
+                      className="btn btn-link collapsed"
+                      type="button"
+                      data-toggle="collapse"
+                      data-target="#applicationSessionIdsCollapse"
+                      aria-expanded="true"
+                      aria-controls="applicationSessionIdsCollapse"
+                    >
+                      Application Session Ids
+                    </button>
+                  </h2>
+                </div>
 
-              <div
-                id="applicationSessionIdsCollapse"
-                className="collapse"
-                aria-labelledby="applicationSessionIdsHeading"
-                data-parent="#settingsAccordion"
-              >
-                <div className="card-body">
-                  <Table striped bordered>
-                    <thead>
-                      <tr>
-                        <td width="10%">Count</td>
-                        <td width="auto">Application Session Id</td>
-                        <td width="auto">Start time</td>
-                        <td width="5%">
-                          <div
-                            style={{ display: "flex", flexDirection: "row" }}
-                          >
-                            <Button
-                              outline
-                              size="sm"
-                              color="secondary"
-                              style={{ marginRight: 5 }}
-                              onClick={() => setFilterApplicationSessionIdsStaging([])}
+                <div
+                  id="applicationSessionIdsCollapse"
+                  className="collapse"
+                  aria-labelledby="applicationSessionIdsHeading"
+                  data-parent="#settingsAccordion"
+                >
+                  <div className="card-body">
+                    <Table striped bordered>
+                      <thead>
+                        <tr>
+                          <td width="10%">Count</td>
+                          <td width="auto">Application Session Id</td>
+                          <td width="auto">Start time</td>
+                          <td width="5%">
+                            <div
+                              style={{ display: "flex", flexDirection: "row" }}
                             >
-                              ☐
-                            </Button>
-                            <Button
-                              outline
-                              size="sm"
-                              color="success"
-                              onClick={() =>
-                                setFilterApplicationSessionIdsStaging(
-                                  Array.from(applicationSessionIds.keys())
-                                )
-                              }
-                            >
-                              ☑
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array.from(applicationSessionIds.keys())
-                        .sort()
-                        .map((k) => (
-                          <tr key={k}>
-                            <td>{applicationSessionIds.get(k)}</td>
-                            <td>{k}</td>
-                            <td>{applicationSessionIdTimestamps.get(k)?.toString()}</td>
-                            <td>
-                              <Input
-                                type="checkbox"
-                                className="tableCheckbox"
-                                checked={filterApplicationSessionIdsStaging.includes(k)}
-                                onChange={(e) => {
-                                  if (e.target.checked)
-                                    setFilterApplicationSessionIdsStaging([
-                                      ...filterApplicationSessionIdsStaging,
-                                      k,
-                                    ]);
-                                  else
-                                  setFilterApplicationSessionIdsStaging([
-                                      ...filterApplicationSessionIdsStaging.filter(
-                                        (s) => s !== k
-                                      ),
-                                    ]);
-                                }}
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </Table>
+                              <Button
+                                outline
+                                size="sm"
+                                color="secondary"
+                                style={{ marginRight: 5 }}
+                                onClick={() =>
+                                  setFilterApplicationSessionIdsStaging([])
+                                }
+                              >
+                                ☐
+                              </Button>
+                              <Button
+                                outline
+                                size="sm"
+                                color="success"
+                                onClick={() =>
+                                  setFilterApplicationSessionIdsStaging(
+                                    Array.from(applicationSessionIds.keys())
+                                  )
+                                }
+                              >
+                                ☑
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from(applicationSessionIds.keys())
+                          .sort()
+                          .map((k) => (
+                            <tr key={k}>
+                              <td>{applicationSessionIds.get(k)}</td>
+                              <td>{k}</td>
+                              <td>
+                                {applicationSessionIdTimestamps
+                                  .get(k)
+                                  ?.toString()}
+                              </td>
+                              <td>
+                                <Input
+                                  type="checkbox"
+                                  className="tableCheckbox"
+                                  checked={filterApplicationSessionIdsStaging.includes(
+                                    k
+                                  )}
+                                  onChange={(e) => {
+                                    if (e.target.checked)
+                                      setFilterApplicationSessionIdsStaging([
+                                        ...filterApplicationSessionIdsStaging,
+                                        k,
+                                      ]);
+                                    else
+                                      setFilterApplicationSessionIdsStaging([
+                                        ...filterApplicationSessionIdsStaging.filter(
+                                          (s) => s !== k
+                                        ),
+                                      ]);
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </Table>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           </div>
           Events:
@@ -627,8 +694,12 @@ function App() {
                     <td>
                       <div>
                         <p style={{ wordWrap: "break-word" }}>{l.Level}</p>
-                        <p style={{ wordWrap: "break-word" }}>{l.Properties?.MetricName}</p>
-                        <p style={{ wordWrap: "break-word" }}>{l.Properties?.ConcurrentTaskIndex}</p>
+                        <p style={{ wordWrap: "break-word" }}>
+                          {l.Properties?.MetricName}
+                        </p>
+                        <p style={{ wordWrap: "break-word" }}>
+                          {l.Properties?.ConcurrentTaskIndex}
+                        </p>
                       </div>
                     </td>
                     <td>
@@ -640,7 +711,14 @@ function App() {
                       <p style={{ wordWrap: "break-word" }}>{l.Message}</p>
                     </td>
                     <td>
-                      <p style={{ wordWrap: "break-word", whiteSpace: "break-spaces" }}>{l.Exception}</p>
+                      <p
+                        style={{
+                          wordWrap: "break-word",
+                          whiteSpace: "break-spaces",
+                        }}
+                      >
+                        {l.Exception}
+                      </p>
                     </td>
                   </tr>
                 ))}

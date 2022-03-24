@@ -556,7 +556,12 @@ function App() {
                       </thead>
                       <tbody>
                         {Array.from(applicationSessionIds.keys())
-                          .sort()
+                          .sort((a, b) =>
+                            applicationSessionIdTimestamps.get(a)! >
+                            applicationSessionIdTimestamps.get(b)!
+                              ? -1
+                              : 1
+                          )
                           .map((k) => (
                             <tr key={k}>
                               <td>{applicationSessionIds.get(k)}</td>

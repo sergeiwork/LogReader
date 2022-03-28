@@ -5,7 +5,7 @@ import React, {
   useState,
   version,
 } from "react";
-import { Button, Input, Progress, Spinner, Table } from "reactstrap";
+import { Button, Input, Label, Progress, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
 import DatePicker from "react-datepicker";
@@ -63,6 +63,8 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const [filterExceptions, setFilterExceptions] = useState<string[]>([]);
+  const [filterExceptionsRegex, setFilterExceptionsRegex] =
+    useState<string>("");
   const [filterWorkers, setFilterWorkers] = useState<string[]>([]);
   const [filterApplicationSessionIds, setFilterApplicationSessionIds] =
     useState<string[]>([]);
@@ -72,6 +74,8 @@ function App() {
   const [filterExceptionsStaging, setFilterExceptionsStaging] = useState<
     string[]
   >([]);
+  const [filterExceptionsRegexStaging, setFilterExceptionsRegexStaging] =
+    useState<string>("");
   const [filterWorkersStaging, setFilterWorkersStaging] = useState<string[]>(
     []
   );
@@ -101,6 +105,7 @@ function App() {
     () => setFilterModified(true),
     [
       filterExceptionsStaging,
+      filterExceptionsRegexStaging,
       filterWorkersStaging,
       filterApplicationSessionIdsStaging,
     ]
@@ -158,6 +163,8 @@ function App() {
     setExceptions(newExceptions);
     setFilterExceptionsStaging(Array.from(newExceptions.keys()));
 
+    setFilterExceptionsRegexStaging("");
+
     setWorkers(newWorkers);
     setFilterWorkersStaging(Array.from(newWorkers.keys()));
 
@@ -201,6 +208,8 @@ function App() {
           filterWorkers.includes(
             (l.Properties?.WorkerName ?? "General") + " " + l.Level
           ) &&
+          (filterExceptionsRegex.length === 0 ||
+            l.Exception.match(filterExceptionsRegex)) &&
           filterApplicationSessionIds.includes(
             l.Properties?.ApplicationSessionId ?? ""
           ) &&
@@ -213,6 +222,7 @@ function App() {
   }, [
     logLines,
     filterExceptions,
+    filterExceptionsRegex,
     filterWorkers,
     filterApplicationSessionIds,
     filterStartDate,
@@ -261,6 +271,7 @@ function App() {
 
   const applyFilters = () => {
     setFilterExceptions([...filterExceptionsStaging]);
+    setFilterExceptionsRegex(filterExceptionsRegexStaging);
     setFilterWorkers([...filterWorkersStaging]);
     setFilterApplicationSessionIds([...filterApplicationSessionIdsStaging]);
     setFilterModified(false);
@@ -334,6 +345,15 @@ function App() {
                 data-parent="#settingsAccordion"
               >
                 <div className="card-body">
+                  <div>
+                    <Label>Regex: </Label>
+                    <Input
+                      onChange={(e) =>
+                        setFilterExceptionsRegexStaging(e.target.value)
+                      }
+                      value={filterExceptionsRegexStaging}
+                    />{" "}
+                  </div>
                   <Table striped bordered>
                     <thead>
                       <tr>

@@ -5,7 +5,7 @@ import React, {
   useState,
   version,
 } from "react";
-import { Button, Input, Label, Progress, Spinner, Table } from "reactstrap";
+import { Alert, Button, Input, Label, Progress, Spinner, Table } from "reactstrap";
 import "./App.css";
 import Graph from "./components/Graph";
 import DatePicker from "react-datepicker";
@@ -35,6 +35,7 @@ class LogLine {
   Exception: string = "";
   Id: number = 0;
   Properties: ILogLineProperties | null = null;
+  RawLine: string = "";
 }
 
 const format = (str: string, obj: any): string => {
@@ -61,6 +62,7 @@ function App() {
     useState(new Map<string, Date>());
 
   const [loading, setLoading] = useState(false);
+  const [showingClipBoardAlert, setShowingClipBoardAlert] = useState(false);
 
   const [filterExceptions, setFilterExceptions] = useState<string[]>([]);
   const [filterExceptionsRegex, setFilterExceptionsRegex] =
@@ -126,6 +128,7 @@ function App() {
             Exception: obj.Exception,
             Id: i,
             Properties: obj.Properties,
+            RawLine: l
           };
         } catch {
           return null;
@@ -289,6 +292,9 @@ function App() {
       >
         v{versionNumber}
       </div>
+      <Alert color="success" className="alert" isOpen={showingClipBoardAlert}>
+          Log line was copied to clipboard.
+      </Alert>
       <div>
         <div {...getRootProps()} className="dropzone">
           <input
@@ -710,6 +716,19 @@ function App() {
                   <tr key={l.Id} className={"logRow " + l.Level}>
                     <td>
                       <p style={{ wordWrap: "break-word" }}>{l.Id}</p>
+                      <div>
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(l.RawLine);
+                            setShowingClipBoardAlert(true);
+                            setTimeout(() => {
+                              setShowingClipBoardAlert(false);
+                            }, 1500);
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
                     </td>
                     <td>
                       <p style={{ wordWrap: "break-word" }}>
